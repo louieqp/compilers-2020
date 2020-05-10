@@ -11,7 +11,6 @@ rule token = parse
 | '+'            { PLUS }
 | '-'            { MINUS }
 | '*'            { TIMES }
-| '/'            { DIV }
 | "and"          { AND }
 | "or"           { OR }
 | '<'            { LESS }
@@ -24,12 +23,14 @@ rule token = parse
 | ')'            { RPAREN }
 | '='            { ASSIGN }
 | ','            { COMMA }
+| "if"           { IF }
+| "else"         { ELSE }
 | "let"          { LET }
 | "add1"         { ADD1 }
 | "sub1"         { SUB1 }
 | "not"          { NOT }
 | "in"           { IN }
 | "def"          { DEF }
-| ':'            {COLON}
+| ':'            { COLON }
 | ['a'-'z' 'A'-'Z']+ as lxm { ID lxm }
 | eof            { EOF }
