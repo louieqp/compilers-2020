@@ -16,6 +16,6 @@ type expr =
 type decl =
   | Func of string * string list * expr
 
-type program =
+type prog =
   | Decls of decl list * expr
   | Expr of expr
