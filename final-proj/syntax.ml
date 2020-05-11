@@ -1,4 +1,3 @@
-(* Escribir AST aqui  *)
 type binop = Plus | Minus | Mult | And | Or | Less
             | LessEq | Greater | GreaterEq | Eq | Ne
 
@@ -12,6 +11,7 @@ type expr =
   | Let of string * expr * expr
   | If of expr * expr * expr
   | Not of expr
+  | FuncCall of string * expr list
 
 type decl =
   | Func of string * string list * expr
