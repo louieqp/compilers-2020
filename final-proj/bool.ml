@@ -350,6 +350,31 @@ let countVars = fun (exp : expr) : int ->
   let count = countVarsHelper exp 0 in
   count
 
+let compile_decl (decl : decl) : instruction list =
+  match decl with
+  | Func (name, args, body) -> 
+      let varsCount = countVars body in
+      let env = List.mapi (fun slot, arg -> (arg, slot+1)) args in
+      [ILabel name]
+      (* Prologue *)
+      @ [IPush(Reg RBP)]
+      @ [IMov((Reg RBP), (Reg RSP))]
+      @ [ISub((Reg RSP), (8varsCount))]
+      (* Body *)
+      @ compile_expr body env 
+      (* Leave *)
+      @ [IMov((Reg RSP), (Reg RBP))]
+      @ [IRet]
+
+let rec compile_decls (decls : program) (instructions : instruction list) : instruction list =
+  match decls with
+  | [] -> instructions
+  | decl :: decls2 -> 
+      let instructions2 = compile_decl decl in
+      let combined_instructions = instructions2 @ instructions in
+      compile_decls decls2 combinedinstructions
+  |  -> failwith ("compile_decls compiles decls of type program, not anything else of type program.")
+
 
 let compile = fun (prog : program) : instruction list * instruction list ->
   match prog with
