@@ -326,12 +326,12 @@ let rec compile_expr (e : expr) (env : env) : instruction list =
        @ [ ILabel done_label ]
 
   (* What am I supposed to do with the args? Push them to the stack? *)
-  | FuncCall (name, args) ->
+  (* | FuncCall (name, args) ->
      let argsCount = List.length args in 
-     let pushed_args_as_immediate = List.map (fun arg -> (IPush (...))) args in
+     let pushed_args_as_immediate = List.rev_map (fun arg -> (IPush (...))) args in
      pushed_args_as_immediate
      @ [Call name]
-     @ [IAdd((Reg RSP), Const(8*argsCount))]
+     @ [IAdd((Reg RSP), Const(8*argsCount))] *)
 
 
 let rec countVarsHelper (exp : expr) (counter : int) : int =
@@ -354,31 +354,31 @@ let compile_decl (decl : decl) : instruction list =
   match decl with
   | Func (name, args, body) -> 
       let varsCount = countVars body in
-      let env = List.mapi (fun slot, arg -> (arg, slot+1)) args in
+      let env = List.mapi (fun slot arg -> (arg, slot+1)) args in
       [ILabel name]
       (* Prologue *)
       @ [IPush(Reg RBP)]
       @ [IMov((Reg RBP), (Reg RSP))]
-      @ [ISub((Reg RSP), (8varsCount))]
+      @ [ISub((Reg RSP), (Const (Int64.of_int (8*varsCount))))]
       (* Body *)
       @ compile_expr body env 
       (* Leave *)
       @ [IMov((Reg RSP), (Reg RBP))]
       @ [IRet]
 
-let rec compile_decls (decls : program) (instructions : instruction list) : instruction list =
+let rec compile_decls (decls : decl list) (instructions : instruction list) : instruction list =
   match decls with
   | [] -> instructions
   | decl :: decls2 -> 
       let instructions2 = compile_decl decl in
       let combined_instructions = instructions2 @ instructions in
-      compile_decls decls2 combinedinstructions
-  |  -> failwith ("compile_decls compiles decls of type program, not anything else of type program.")
+      compile_decls decls2 combined_instructions
+  | _ -> failwith ("compile_decls compiles decls of type prog, not anything else of type prog.")
 
 
-let compile = fun (prog : program) : instruction list * instruction list ->
+let compile = fun (prog : prog) : (instruction list * instruction list) ->
   match prog with
-  | Expr exp -> compile_expr exp []
+  | Expr exp -> ([], compile_expr exp [])
   | Decls (decls, exp) -> 
       let decl_instructions = compile_decls decls [] in
       let exp_instructions = compile_expr exp [] in
@@ -386,7 +386,7 @@ let compile = fun (prog : program) : instruction list * instruction list ->
 
 
 (* compile_prog surrounds a compiled program by whatever scaffolding is needed *)
-let compile_prog (prog : program) : string =
+let compile_prog (prog : prog) : string =
   (* compile the program *)
   let (decl_instrs, exp_instrs) = compile prog in (* Descomponener el tuplo y poner las funciones en .text y la expr en asm_string. *)
   (* convert it to a textual form *)
@@ -401,4 +401,3 @@ our_code_starts_here:" in
   let suffix = "ret" in
   prelude ^ "\n" ^ asm_exp_string ^ "\n" ^ suffix
   ;;
-
