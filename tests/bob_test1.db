@@ -1,11 +1,11 @@
-a = 21
-b = 5
-
 def fun1(a, b):
     a - b
 
 def fun2(a,b):
     fun1(a,b)
+
+let a = 21 in
+let b = 5 in
 
 fun2(a,b)
 // Should be 16
